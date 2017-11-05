@@ -61,4 +61,5 @@ sudo ./Player
 - FLIR Lepton datasheet and sdk: http://www.flir.com/cores/display/?id=51878
 - BCM2835: http://www.airspayce.com/mikem/bcm2835/index.html
 - OpenCV: https://github.com/opencv/opencv
+- Raspberyy Pi pinout: https://pinout.xyz/
 
