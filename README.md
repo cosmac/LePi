@@ -1,4 +1,4 @@
-# LePi
+# LePi [lee-pahy]
 *Copyright (c) 2017 Andrei Claudiu Cosma*
 
 LePi is a lightweight library for FLIR Lepton (2, 2.5 and 3) and Raspberry Pi. The Lepton version will be automatically detected at run time. The SPI port can be specified in the app, by default the LePi apps are using SPI0. 
