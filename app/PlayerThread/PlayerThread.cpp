@@ -68,6 +68,26 @@ int main()
         if (key == 27) { // Press Esc to exit
             break;
         }
+        else if (key == 'f') {
+            cam.sendCommand(FFC, nullptr);
+        }
+        else if (key == 'r') {
+            cam.sendCommand(REBOOT, nullptr);
+        }
+        else if (key == 't') {
+            int temperature{0};
+            // Received temperature is in Kelvin and scaled by 100
+            cam.sendCommand(SENSOR_TEMP_K, &temperature);
+            std::cout << "Sensor temperature: " 
+                      << temperature/100.0 << " K" << std::endl;
+        }
+        else if (key == 'h') {
+            std::cout << "Help: " << std::endl
+                      << "\t- f: run flat filed correction (FFC)" << std::endl
+                      << "\t- r: run sensor reboot" << std::endl
+                      << "\t- t: show sensor temperature" << std::endl
+                      << "\t- h: show help" << std::endl;
+        }
         
         // Runtime
         auto end_time = std::chrono::system_clock::now();
