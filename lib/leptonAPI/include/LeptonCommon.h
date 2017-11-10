@@ -82,7 +82,7 @@ struct LeptonCameraConfig {
         packet_size = 164;
         packet_size_uint16 = packet_size / 2;
         packets_per_segment = 60;
-        packets_per_read = 5;   // must be a divisor of packets_per_segment
+        packets_per_read = 1;   // must be a divisor of packets_per_segment
 
         segment_size = packet_size * packets_per_segment;
         segment_size_uint16 = packet_size_uint16 * packets_per_segment;
