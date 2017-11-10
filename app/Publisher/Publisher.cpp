@@ -3,7 +3,7 @@
  */
 
 // LePi
-#include <ServerCommon.h>
+#include <Common.h>
 #include <LeptonCommon.h>
 #include <LeptonCamera.h>
 
