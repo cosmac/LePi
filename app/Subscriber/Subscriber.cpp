@@ -1,5 +1,28 @@
 /**
- * Sample app for streaming video over the local network (TCP)
+ * This file is part of the LePi Project:
+ * https://github.com/cosmac/LePi
+ *
+ * MIT License
+ *
+ * Copyright (c) 2017 Andrei Claudiu Cosma
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 // LePi
@@ -33,7 +56,12 @@ using namespace std;
 // User defines
 #define DPRINTF //printf
 
-void getIP (std::string& ipV4, std::string& ipV6) {
+/**
+ * @brief Get RPi IP address
+ * @param ipV4
+ * @param ipV6
+ */
+void GetIP (std::string& ipV4, std::string& ipV6) {
     
     struct ifaddrs* ifAddrStruct{nullptr};
     struct ifaddrs* ifa{nullptr};
@@ -73,34 +101,42 @@ void getIP (std::string& ipV4, std::string& ipV6) {
     }
 }
 
-//============================================================================
-// Main application
-//============================================================================
-int main()
-{
-    std::string ipV4{""};
-    std::string ipV6{""};
-    getIP(ipV4, ipV6);
-    printf("IPv4: %s \n", ipV4.c_str());
-    printf("IPv6: %s \n", ipV6.c_str());
-    const int portNumber{5995};
-    
+/**
+ * @brief Open TCP/IP communication
+ * @param port_number
+ * @param ip_address
+ * @param socketHandle
+ * @return True, if connection successfully open, false otherwise
+ */
+bool OpenConnection(int port_number,
+                    std::string ip_address,
+                    int& socketHandle) {
+
+    // If no IP address provided, use RPi IP address
+    if (ip_address.empty()) {
+        std::string ipV4{""};
+        std::string ipV6{""};
+        GetIP(ipV4, ipV6);
+        printf("RPi IPv4: %s \n", ipV4.c_str());
+        printf("RPi IPv6: %s \n", ipV6.c_str());
+        ip_address = ipV4;
+    }
+
     // Create socket
-    int socketHandle;
     if((socketHandle = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
         cerr << "Server fail to create the socket." << endl;
         cerr << "Error: " << strerror(errno) << endl;
         close(socketHandle);
-        exit(EXIT_FAILURE);
-   }
+        return false;
+    }
 
     // Load system information into socket data structures
     struct sockaddr_in remoteSocketInfo;
     bzero(&remoteSocketInfo, sizeof(sockaddr_in));  // Clear structure memory
     remoteSocketInfo.sin_family = AF_INET;
-    remoteSocketInfo.sin_addr.s_addr = inet_addr(ipV4.c_str());
-    remoteSocketInfo.sin_port = htons((u_short)portNumber);
+    remoteSocketInfo.sin_addr.s_addr = inet_addr(ip_address.c_str());
+    remoteSocketInfo.sin_port = htons((u_short)port_number);
 
 
     // Establish the connection with the server
@@ -109,49 +145,50 @@ int main()
         cerr << "Client fail to connect to the server." << endl;
         cerr << "Error: " << strerror(errno) << endl;
         close(socketHandle);
-        exit(EXIT_FAILURE);
+        return false;
     }
 
+    return true;
+}
+
+/**
+ * Sample app for streaming video over the local network (TCP)
+ */
+int main() {
+
+    // Create socket
+    const int kPortNumber{5995};
+    const std::string kIPAddress{""};
+    int socketHandle;
+    if (!OpenConnection(kPortNumber, kIPAddress, socketHandle)) {
+        std::cerr << "Unable to open connection." << std::endl;
+        exit(EXIT_FAILURE);
+    }
 
     // Send data
     constexpr int width{160};
     constexpr int height{120};
     int pckg_size = 10 + width * height * 2;// Header + IR img(80*60*2)
     char img[pckg_size];
-    char msg[2]; // Header(MSG+Response=2)
+    char msg[] = {FRAME_REQUEST, FRAME_U8}; // Header(MSG+Response=2)
     int rc = 0;
     cv::Mat ir_img (height, width, CV_8UC1);
 
-    int count = 0;
-    while (true)
-    {
+    int count{0};
+    while (true) {
 
-    	////////////////////////////////////////////////////////////////////////
-    	///  Create Request
-    	////////////////////////////////////////////////////////////////////////
-        msg[0] = FRAME_REQUEST;
-        msg[1] = FRAME_U8;
-
-
-    	////////////////////////////////////////////////////////////////////////
-    	///  Send Request
-    	////////////////////////////////////////////////////////////////////////
-        DPRINTF("[%d]CLIENT -- SEND -- Sending message... ", count);
+    	//  Send Request
+    	DPRINTF("[%d]CLIENT -- SEND -- Sending message... ", count);
         int sd = send(socketHandle, msg, sizeof(msg), 0);
-        if (sd == -1)
-        {
+        if (sd == -1) {
             cerr << "[" << count << "]CLIENT -- CONNECTION -- Lost." << endl;
             cerr << "Error: " << strerror(errno) << endl;
             exit(EXIT_FAILURE);
         }
         DPRINTF(" Message sent! \n");
 
-
-        ////////////////////////////////////////////////////////////////////////
-        /// Receive response
-        ////////////////////////////////////////////////////////////////////////
-        //memset(img, 0, sizeof(img));
-        int data_size = 0;
+        // Receive response
+        int data_size{0};
         do
         { // wait for data to be available
         	ioctl(socketHandle, FIONREAD, &data_size);
@@ -199,5 +236,4 @@ int main()
     }
 
     return EXIT_SUCCESS;
-
 }
