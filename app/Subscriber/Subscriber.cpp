@@ -37,7 +37,6 @@
 // C/C++
 #include <stdio.h>
 #include <iostream>
-#include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
@@ -47,11 +46,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <ifaddrs.h>
-#include <net/if.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
-
-using namespace std;
 
 // User defines
 #define DPRINTF //printf
@@ -117,23 +112,23 @@ bool OpenConnection(int port_number,
         std::string ipV4{""};
         std::string ipV6{""};
         GetIP(ipV4, ipV6);
-        printf("RPi IPv4: %s \n", ipV4.c_str());
-        printf("RPi IPv6: %s \n", ipV6.c_str());
+        std::cout << "RPi IPv4: " << ipV4 << std::endl;
+        std::cout << "RPi IPv6: " << ipV6 << std::endl;
         ip_address = ipV4;
     }
 
     // Create socket
     if((socketHandle = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
-        cerr << "Server fail to create the socket." << endl;
-        cerr << "Error: " << strerror(errno) << endl;
+        std::cerr << "Server fail to create the socket." << std::endl;
+        std::cerr << "Error: " << strerror(errno) << std::endl;
         close(socketHandle);
         return false;
     }
 
     // Load system information into socket data structures
     struct sockaddr_in remoteSocketInfo;
-    bzero(&remoteSocketInfo, sizeof(sockaddr_in));  // Clear structure memory
+    bzero(&remoteSocketInfo, sizeof(sockaddr_in));
     remoteSocketInfo.sin_family = AF_INET;
     remoteSocketInfo.sin_addr.s_addr = inet_addr(ip_address.c_str());
     remoteSocketInfo.sin_port = htons((u_short)port_number);
@@ -142,8 +137,8 @@ bool OpenConnection(int port_number,
     // Establish the connection with the server
     if(connect(socketHandle, (struct sockaddr *)&remoteSocketInfo, sizeof(sockaddr_in)) < 0)
     {
-        cerr << "Client fail to connect to the server." << endl;
-        cerr << "Error: " << strerror(errno) << endl;
+        std::cerr << "Client fail to connect to the server." << std::endl;
+        std::cerr << "Error: " << strerror(errno) << std::endl;
         close(socketHandle);
         return false;
     }
@@ -181,8 +176,8 @@ int main() {
     	DPRINTF("[%d]CLIENT -- SEND -- Sending message... ", count);
         int sd = send(socketHandle, msg, sizeof(msg), 0);
         if (sd == -1) {
-            cerr << "[" << count << "]CLIENT -- CONNECTION -- Lost." << endl;
-            cerr << "Error: " << strerror(errno) << endl;
+            std::cerr << "[" << count << "]CLIENT -- CONNECTION -- Lost." << std::endl;
+            std::cerr << "Error: " << strerror(errno) << std::endl;
             exit(EXIT_FAILURE);
         }
         DPRINTF(" Message sent! \n");
@@ -199,8 +194,8 @@ int main() {
         // Check if connection is still open
         if (rc == -1)
         {
-            cerr << "[" << count << "]CLIENT -- CONNECTION -- Lost." << endl;
-            cerr << "Error: " << strerror(errno) << endl;
+            std::cerr << "[" << count << "]CLIENT -- CONNECTION -- Lost." << std::endl;
+            std::cerr << "Error: " << strerror(errno) << std::endl;
             exit(EXIT_FAILURE);
         }
 
@@ -216,12 +211,12 @@ int main() {
         }
         else if (img[0] == UNKNOWN_MSG)
         {
-            cerr << "[" << count << "]CLIENT -- Server did not recognize your request." << endl;
+            std::cerr << "[" << count << "]CLIENT -- Server did not recognize your request." << std::endl;
             exit(EXIT_FAILURE);
         }
         else
         {
-            cerr << "[" << count << "]CLIENT -- Unable to decode server message." << endl;
+            std::cerr << "[" << count << "]CLIENT -- Unable to decode server message." << std::endl;
             exit(EXIT_FAILURE);
         }
 
