@@ -3,7 +3,7 @@ cmake_minimum_required (VERSION 3.0)
 project(Subscriber)
 
 # Dependencies
-set(DEPENDENCIES leptonAPI OpenCV)
+set(DEPENDENCIES leptonAPI utils OpenCV)
 list(LENGTH DEPENDENCIES num_dependencies)
 if(num_dependencies)
 	foreach(lib_name ${DEPENDENCIES})

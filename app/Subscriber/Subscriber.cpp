@@ -26,7 +26,8 @@
  */
 
 // LePi
-#include <Common.h>
+#include <Connection.h>
+#include <ConnectionCommon.h>
 #include <LeptonCommon.h>
 #include <LeptonCamera.h>
 
@@ -36,116 +37,15 @@
 
 // C/C++
 #include <stdio.h>
-#include <iostream>
-#include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <string.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <errno.h>
-#include <ifaddrs.h>
-#include <arpa/inet.h>
 
 // User defines
 #define DPRINTF //printf
-
-/**
- * @brief Get RPi IP address
- * @param ipV4
- * @param ipV6
- */
-void GetIP (std::string& ipV4, std::string& ipV6) {
-    
-    struct ifaddrs* ifAddrStruct{nullptr};
-    struct ifaddrs* ifa{nullptr};
-    void* tmpAddrPtr{nullptr};
-
-    getifaddrs(&ifAddrStruct);
-
-    for (ifa = ifAddrStruct; ifa != nullptr; ifa = ifa->ifa_next) {
-        if (!ifa->ifa_addr) {
-            continue;
-        }
-        
-        // check if it is IP4
-        if (ifa->ifa_addr->sa_family == AF_INET) {
-            tmpAddrPtr=&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
-            char addressBuffer[INET_ADDRSTRLEN];
-            inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
-
-            if (strcmp(ifa->ifa_name, "eth0") == 0) {
-            	ipV4 = addressBuffer;
-            }
-        }
-        // check if it is IP6
-        else if (ifa->ifa_addr->sa_family == AF_INET6) {
-            tmpAddrPtr=&((struct sockaddr_in6 *)ifa->ifa_addr)->sin6_addr;
-            char addressBuffer[INET6_ADDRSTRLEN];
-            inet_ntop(AF_INET6, tmpAddrPtr, addressBuffer, INET6_ADDRSTRLEN);
-
-            if (strcmp(ifa->ifa_name, "eth0") == 0) {
-            	ipV6 = addressBuffer;
-            }
-        } 
-    }
-    
-    if (ifAddrStruct != nullptr) {
-        freeifaddrs(ifAddrStruct);
-    }
-}
-
-/**
- * @brief Open TCP/IP communication
- * @param port_number   Publisher port number
- * @param ip_address    Publisher IP address. If empty, current device IP address
- *                      will be used and the publisher must run on the same machine
- * @param socketHandle  Created socket handle
- * @return True, if connection successfully open, false otherwise
- */
-bool OpenConnection(int port_number,
-                    std::string ip_address,
-                    int& socketHandle) {
-
-    // If no IP address provided, use RPi IP address
-    if (ip_address.empty()) {
-        std::string ipV4{""};
-        std::string ipV6{""};
-        GetIP(ipV4, ipV6);
-        std::cout << "RPi IPv4: " << ipV4 << std::endl;
-        std::cout << "RPi IPv6: " << ipV6 << std::endl;
-        ip_address = ipV4;
-    }
-
-    // Create socket
-    if((socketHandle = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-    {
-        std::cerr << "Server fail to create the socket." << std::endl;
-        std::cerr << "Error: " << strerror(errno) << std::endl;
-        close(socketHandle);
-        return false;
-    }
-
-    // Load system information into socket data structures
-    struct sockaddr_in remoteSocketInfo;
-    bzero(&remoteSocketInfo, sizeof(sockaddr_in));
-    remoteSocketInfo.sin_family = AF_INET;
-    remoteSocketInfo.sin_addr.s_addr = inet_addr(ip_address.c_str());
-    remoteSocketInfo.sin_port = htons((u_short)port_number);
-
-
-    // Establish the connection with the server
-    if(connect(socketHandle, (struct sockaddr *)&remoteSocketInfo, sizeof(sockaddr_in)) < 0)
-    {
-        std::cerr << "Client fail to connect to the server." << std::endl;
-        std::cerr << "Error: " << strerror(errno) << std::endl;
-        close(socketHandle);
-        return false;
-    }
-
-    return true;
-}
 
 /**
  * Sample app for streaming video over the local network (TCP)
@@ -156,7 +56,7 @@ int main() {
     const int kPortNumber{5995};
     const std::string kIPAddress{""};
     int socketHandle;
-    if (!OpenConnection(kPortNumber, kIPAddress, socketHandle)) {
+    if (!ConnectSubscriber(kPortNumber, kIPAddress, socketHandle)) {
         std::cerr << "Unable to open connection." << std::endl;
         exit(EXIT_FAILURE);
     }

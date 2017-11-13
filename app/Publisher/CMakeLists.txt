@@ -3,7 +3,7 @@ cmake_minimum_required (VERSION 3.0)
 project(Publisher)
 
 # Dependencies
-set(DEPENDENCIES leptonAPI)
+set(DEPENDENCIES leptonAPI utils)
 list(LENGTH DEPENDENCIES num_dependencies)
 if(num_dependencies)
 	foreach(lib_name ${DEPENDENCIES})
