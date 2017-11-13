@@ -74,7 +74,7 @@ void GetIP (std::string& ipV4, std::string& ipV6) {
             tmpAddrPtr=&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
             char addressBuffer[INET_ADDRSTRLEN];
             inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
-            //printf("%s IP Address %s\n", ifa->ifa_name, addressBuffer); 
+
             if (strcmp(ifa->ifa_name, "eth0") == 0) {
             	ipV4 = addressBuffer;
             }
@@ -84,7 +84,7 @@ void GetIP (std::string& ipV4, std::string& ipV6) {
             tmpAddrPtr=&((struct sockaddr_in6 *)ifa->ifa_addr)->sin6_addr;
             char addressBuffer[INET6_ADDRSTRLEN];
             inet_ntop(AF_INET6, tmpAddrPtr, addressBuffer, INET6_ADDRSTRLEN);
-            //printf("%s IP6 Address %s\n", ifa->ifa_name, addressBuffer); 
+
             if (strcmp(ifa->ifa_name, "eth0") == 0) {
             	ipV6 = addressBuffer;
             }
@@ -98,9 +98,10 @@ void GetIP (std::string& ipV4, std::string& ipV6) {
 
 /**
  * @brief Open TCP/IP communication
- * @param port_number
- * @param ip_address
- * @param socketHandle
+ * @param port_number   Publisher port number
+ * @param ip_address    Publisher IP address. If empty, current device IP address
+ *                      will be used and the publisher must run on the same machine
+ * @param socketHandle  Created socket handle
  * @return True, if connection successfully open, false otherwise
  */
 bool OpenConnection(int port_number,
@@ -192,30 +193,25 @@ int main() {
         DPRINTF("[%d]CLIENT -- RECV -- Number of bytes read: %d \n", count, rc);
 
         // Check if connection is still open
-        if (rc == -1)
-        {
+        if (rc == -1) {
             std::cerr << "[" << count << "]CLIENT -- CONNECTION -- Lost." << std::endl;
             std::cerr << "Error: " << strerror(errno) << std::endl;
             exit(EXIT_FAILURE);
         }
 
         // Check response header
-        if (img[0] == FRAME_REQUEST)
-        {
+        if (img[0] == FRAME_REQUEST) {
         	DPRINTF("[%d]CLIENT -- RECV -- FRAME_REQUEST response. \n", count);
         	memcpy(ir_img.data, img+10, width * height);
         }
-        else if (img[0] == I2C_CMD)
-        {
+        else if (img[0] == I2C_CMD) {
         	DPRINTF("[%d]CLIENT -- RECV -- I2C_CMD response. \n", count);
         }
-        else if (img[0] == UNKNOWN_MSG)
-        {
+        else if (img[0] == UNKNOWN_MSG) {
             std::cerr << "[" << count << "]CLIENT -- Server did not recognize your request." << std::endl;
             exit(EXIT_FAILURE);
         }
-        else
-        {
+        else {
             std::cerr << "[" << count << "]CLIENT -- Unable to decode server message." << std::endl;
             exit(EXIT_FAILURE);
         }
