@@ -54,7 +54,9 @@ Once the library is build, demo apps can be found in the install/bin folder. To 
 cd LePi/install/bin
 sudo ./Player
 ```
-**_Note:_** `sudo` is always required when you run an app communicating with the Lepton sensor
+**_Note1:_** `sudo` is always required when you run an app communicating with the Lepton sensor
+
+**_Note2:_** You may observe different frame rates between Letpon 2 and 3. That is because the library reads all the frames available on the SPI port! Based on the Lepton 2 datasheet you can observe that since the real frame rate is  ~9 fps, they send the same frame 3 times until the next frame is available. Now, for Lepton 3, they decided to send discard packets until a new frame is avialble. For this reason you may see a frame rate of ~26 fps for Lepton 2 and ~9 fps for Lepton 3. Anyway, in both cases, there are only ~9 unique frames per second.
 
 ## Other resources
 - Breakout board pin layout: http://www.pureengineering.com/projects/lepton
