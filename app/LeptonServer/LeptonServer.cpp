@@ -73,26 +73,18 @@ int main()
     
         //  Receive Request
         RequestMessage req_msg;
-        auto rc = recv(socketConnection, &req_msg, sizeof(req_msg), 0);
-        DPRINTF("[%d]SERVER -- RECV -- Number of bytes read: %d \n", frame_id, rc);
-
-        // Check if connection is still open
-        if (rc == -1) {
-            std::cerr << "[" << frame_id << "]SERVER -- CONNECTION -- Lost." << std::endl
-                      << "Error: " << strerror(errno) << std::endl;
-            exit(EXIT_FAILURE);
-        }
+        ReceiveMessage(socketConnection, req_msg);
 
         // Frame request msg
         ResponseMessage resp_msg;
         switch (req_msg.req_type) {
 
-            case FRAME_REQUEST:
+            case REQUEST_FRAME:
             {
                 DPRINTF("[%d]SERVER -- RECV -- Message: FRAME_REQUEST \n", frame_id);
-                resp_msg.req_type = FRAME_REQUEST;
+                resp_msg.req_type = REQUEST_FRAME;
                 resp_msg.sensor_temperature = lePi.SensorTemperature();
-                if (req_msg.req_cmd == FRAME_U8) {
+                if (req_msg.req_cmd == CMD_FRAME_U8) {
                     lePi.getFrameU8(imgU8);
                     memcpy(resp_msg.frame, imgU8.data(), imgU8.size());
                     resp_msg.bpp = 1;
@@ -101,31 +93,31 @@ int main()
                     memcpy(resp_msg.frame, imgU16.data(), imgU16.size() * 2);
                     resp_msg.bpp = 2;
                 }
-                resp_msg.req_status = FRAME_READY;
+                resp_msg.req_status = STATUS_FRAME_READY;
                 resp_msg.height = height;
                 resp_msg.width = width;
                 resp_msg.frame_id = frame_id;
                 break;
             }
-            case I2C_REQUEST:
+            case REQUEST_I2C:
             {
                 DPRINTF("[%d]SERVER -- RECV -- Message: I2C_CMD \n", frame_id);
-                resp_msg.req_type = I2C_REQUEST;
+                resp_msg.req_type = REQUEST_I2C;
                 resp_msg.frame_id = frame_id;
                 if (lePi.sendCommand(static_cast<LeptonI2CCmd>(req_msg.req_cmd),
                                      resp_msg.frame)) {
-                    resp_msg.req_status = I2C_SUCCEED;
+                    resp_msg.req_status = STATUS_I2C_SUCCEED;
                 }
                 else {
-                    resp_msg.req_status = I2C_FAILED;
+                    resp_msg.req_status = STATUS_I2C_FAILED;
                 }
                 break;
             }
             default :
             {
                 DPRINTF("[%d]SERVER -- RECV -- Message: UNKNOWN_MSG \n", frame_id);
-                resp_msg.req_type = UNKNOWN_REQUEST;
-                resp_msg.req_status = RESEND;
+                resp_msg.req_type = REQUEST_UNKNOWN;
+                resp_msg.req_status = STATUS_RESEND;
             }
         }
 

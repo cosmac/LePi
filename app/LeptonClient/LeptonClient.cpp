@@ -47,6 +47,20 @@
 // User defines
 #define DPRINTF //printf
 
+// Send a message to server
+void SendMessage(int socketHandle, RequestMessage& msg) {
+
+    DPRINTF("CLIENT -- SEND -- Sending message... ");
+    auto sd = send(socketHandle, &msg, sizeof(msg), 0);
+    if (sd == -1) {
+        std::cerr << "CLIENT -- CONNECTION -- Lost." << std::endl;
+        std::cerr << "Error: " << strerror(errno) << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    DPRINTF(" Message sent! \n");
+}
+
+
 /**
  * Sample app for streaming video over the local network (TCP)
  */
@@ -61,68 +75,48 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
+    // Prepare frame request message. For simplicity, we chose to ask for
+    // U8 frames, so the image is ready for display. For full pixel depth use U16.
+    RequestMessage req_msg;
+    req_msg.req_type = REQUEST_FRAME;
+    req_msg.req_cmd = CMD_FRAME_U8;
+
     // Stream data
-    uint64_t frame_id{0};
     cv::Mat ir_img;
     while (true) {
 
     	//  Send Request
-    	DPRINTF("[%d]CLIENT -- SEND -- Sending message... ", frame_id);
-        RequestMessage req_msg;
-        req_msg.req_type = FRAME_REQUEST;
-        req_msg.req_cmd = FRAME_U8;
-        auto sd = send(socketHandle, &req_msg, sizeof(req_msg), 0);
-        if (sd == -1) {
-            std::cerr << "[" << frame_id << "]CLIENT -- CONNECTION -- Lost." << std::endl;
-            std::cerr << "Error: " << strerror(errno) << std::endl;
-            exit(EXIT_FAILURE);
-        }
-        DPRINTF(" Message sent! \n");
+        SendMessage(socketHandle, req_msg);
 
         // Receive response
-        size_t data_size{0};
-        do
-        { // wait for data to be available
-        	ioctl(socketHandle, FIONREAD, &data_size);
-        } while (data_size < sizeof(ResponseMessage));
         ResponseMessage resp_msg;
-        auto rc = recv(socketHandle, &resp_msg, sizeof(resp_msg), 0);
-        DPRINTF("[%d]CLIENT -- RECV -- Number of bytes read: %d \n", frame_id, rc);
-
-        // Check if connection is still open
-        if (rc == -1) {
-            std::cerr << "[" << frame_id << "]CLIENT -- CONNECTION -- Lost." << std::endl;
-            std::cerr << "Error: " << strerror(errno) << std::endl;
-            exit(EXIT_FAILURE);
-        }
+        ReceiveMessage(socketHandle, resp_msg);
 
         // Check response header
         switch (resp_msg.req_type) {
 
-            case FRAME_REQUEST:
+            case REQUEST_FRAME:
             {
-                DPRINTF("[%d]CLIENT -- RECV -- FRAME_REQUEST response. \n", frame_id);
+                DPRINTF("CLIENT -- RECV -- FRAME_REQUEST response. \n");
                 ir_img = cv::Mat(resp_msg.height, resp_msg.width, CV_8UC1);
                 memcpy(ir_img.data, resp_msg.frame,
                        resp_msg.width * resp_msg.height);
                 break;
             }
-            case I2C_REQUEST:
+            case REQUEST_I2C:
             {
-                DPRINTF("[%d]CLIENT -- RECV -- I2C_CMD response. \n", frame_id);
+                DPRINTF("CLIENT -- RECV -- I2C_CMD response. \n");
                 break;
             }
-            case UNKNOWN_REQUEST:
+            case REQUEST_UNKNOWN:
             {
-                std::cerr << "[" << frame_id
-                          << "]CLIENT -- Server did not recognize your request."
+                std::cerr << "CLIENT -- Server did not recognize your request."
                           << std::endl;
                 exit(EXIT_FAILURE);
             }
             default:
             {
-                std::cerr << "[" << frame_id
-                          << "]CLIENT -- Unable to decode server message."
+                std::cerr << "CLIENT -- Unable to decode server message."
                           << std::endl;
                 exit(EXIT_FAILURE);
             }
@@ -131,11 +125,9 @@ int main() {
         // Show image
         imshow("IR Img", ir_img);
         int key = cvWaitKey(5);
-        if (key == 27) {
+        if (key == 27) { // Press ESC to exit
             break;
         }
-
-        frame_id++;
     }
 
     return EXIT_SUCCESS;
