@@ -86,9 +86,8 @@ inline void ReceiveMessage(int socketHandle,
 
     // Check if connection is still open
     if (rc == -1) {
-        std::cerr << "Connection lost." << std::endl;
         std::cerr << "Error: " << strerror(errno) << std::endl;
-        exit(EXIT_FAILURE);
+        throw std::runtime_error("Connection lost.");
     }
 }
 
@@ -104,8 +103,7 @@ inline void SendMessage(int socketHandle,
 
     auto sd = send(socketHandle, &msg, sizeof(T), 0);
     if (sd == -1) {
-        std::cerr << "Connection lost." << std::endl;
         std::cerr << "Error: " << strerror(errno) << std::endl;
-        exit(EXIT_FAILURE);
+        throw std::runtime_error("Connection lost.");
     }
 }

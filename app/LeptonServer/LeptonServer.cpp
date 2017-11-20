@@ -38,20 +38,17 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-// User defines
-#define DPRINTF //printf
 
 /**
- * Sample app for streaming video over the local network (TCP)
+ * Sample Server app for streaming video over the local network (TCP)
  */
-int main()
-{
+int main() {
     
     // Create socket
     const int kPortNumber{5995};
-    const std::string kIPAddress{""};
-    int socketConnection;
-    if (!ConnectPublisher(kPortNumber, kIPAddress, socketConnection)) {
+    const std::string kIPAddress{""}; // If empty, local IP address is used
+    int socket_connection;
+    if (!ConnectPublisher(kPortNumber, kIPAddress, socket_connection)) {
         std::cerr << "Unable to create connection." << std::endl;
         exit(EXIT_FAILURE);
     }
@@ -60,26 +57,22 @@ int main()
     LeptonCamera lePi;
     lePi.start();
 
-    // Send data
-    const uint32_t width{lePi.width()};
-    const uint32_t height{lePi.height()};
-    std::vector<uint8_t> imgU8(width * height);
-    std::vector<uint16_t> imgU16(width * height);
+    // Intermediary buffers
+    std::vector<uint8_t> imgU8(lePi.width() * lePi.height());
+    std::vector<uint16_t> imgU16(lePi.width() * lePi.height());
 
     bool force_exit{false};
     while (!force_exit) {
     
         //  Receive Request
         RequestMessage req_msg;
-        ReceiveMessage(socketConnection, req_msg);
+        ReceiveMessage(socket_connection, req_msg);
 
         // Frame request msg
         ResponseMessage resp_msg;
         switch (req_msg.req_type) {
 
-            case REQUEST_FRAME:
-            {
-                DPRINTF("SERVER -- RECV -- Message: FRAME_REQUEST \n");
+            case REQUEST_FRAME: {
                 resp_msg.req_type = REQUEST_FRAME;
                 resp_msg.sensor_temperature = lePi.SensorTemperature();
                 if (req_msg.req_cmd == CMD_FRAME_U8) {
@@ -92,13 +85,11 @@ int main()
                     resp_msg.bpp = 2;
                 }
                 resp_msg.req_status = STATUS_FRAME_READY;
-                resp_msg.height = height;
-                resp_msg.width = width;
+                resp_msg.height = lePi.height();
+                resp_msg.width = lePi.width();
                 break;
             }
-            case REQUEST_I2C:
-            {
-                DPRINTF("SERVER -- RECV -- Message: I2C_CMD \n");
+            case REQUEST_I2C: {
                 resp_msg.req_type = REQUEST_I2C;
                 if (lePi.sendCommand(static_cast<LeptonI2CCmd>(req_msg.req_cmd),
                                      resp_msg.frame)) {
@@ -109,28 +100,26 @@ int main()
                 }
                 break;
             }
-            case REQUEST_EXIT:
+            case REQUEST_EXIT: {
                 force_exit = true;
                 break;
-            default :
-            {
-                DPRINTF("SERVER -- RECV -- Message: UNKNOWN_MSG \n");
+            }
+            default : {
                 resp_msg.req_type = REQUEST_UNKNOWN;
                 resp_msg.req_status = STATUS_RESEND;
+                break;
             }
         }
 
         // Send response
-        SendMessage(socketConnection, resp_msg);
+        SendMessage(socket_connection, resp_msg);
    }
 
     // Release sensors
     lePi.stop();
 
     // Close connection
-    DPRINTF("SERVER -- Closing Connection...");
-    close(socketConnection);
-    DPRINTF(" Closed ! \n");
+    close(socket_connection);
 
     return EXIT_SUCCESS;
 

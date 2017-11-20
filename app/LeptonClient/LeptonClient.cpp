@@ -48,15 +48,18 @@
 
 
 /**
- * Sample app for streaming video over the local network (TCP)
+ * Sample Client app for streaming video over the local network (TCP)
  */
 int main() {
 
     // Create socket
     const int kPortNumber{5995};
+    // If IP address is empty, local IP address is used
+    // Note: When connecting to a server that runs on a different machine,
+    // please use the remote system IP address here !!!
     const std::string kIPAddress{""};
-    int socketHandle;
-    if (!ConnectSubscriber(kPortNumber, kIPAddress, socketHandle)) {
+    int socket_handle;
+    if (!ConnectSubscriber(kPortNumber, kIPAddress, socket_handle)) {
         std::cerr << "Unable to open connection." << std::endl;
         exit(EXIT_FAILURE);
     }
@@ -69,14 +72,15 @@ int main() {
 
     // Stream data
     cv::Mat ir_img;
-    while (true) {
+    bool force_exit{false};
+    while (!force_exit) {
 
     	//  Send Request
-        SendMessage(socketHandle, req_msg);
+        SendMessage(socket_handle, req_msg);
 
         // Receive response
         ResponseMessage resp_msg;
-        ReceiveMessage(socketHandle, resp_msg);
+        ReceiveMessage(socket_handle, resp_msg);
 
         // Check response header
         switch (resp_msg.req_type) {
@@ -98,13 +102,15 @@ int main() {
             {
                 std::cerr << "CLIENT -- Server did not recognize your request."
                           << std::endl;
-                exit(EXIT_FAILURE);
+                force_exit = true;
+                break;
             }
             default:
             {
                 std::cerr << "CLIENT -- Unable to decode server message."
                           << std::endl;
-                exit(EXIT_FAILURE);
+                force_exit = true;
+                break;
             }
         }
 
@@ -117,13 +123,13 @@ int main() {
 
     }
 
-    // Close connection
+    // Tell server to shutdown
     req_msg.req_type = REQUEST_EXIT;
     req_msg.req_cmd = CMD_VOID;
-    SendMessage(socketHandle, req_msg);
-    DPRINTF("CLIENT -- Closing Connection...");
-    close(socketHandle);
-    DPRINTF(" Closed ! \n");
+    SendMessage(socket_handle, req_msg);
+
+    // Close socket connection
+    close(socket_handle);
 
     return EXIT_SUCCESS;
 }
