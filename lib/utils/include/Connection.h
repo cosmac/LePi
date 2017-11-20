@@ -31,7 +31,10 @@
 #include <ConnectionCommon.h>
 
 // C/C++
-#include <string>
+#include <cstring>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <iostream>
 
 /**
  * @brief Get RPi IP address
@@ -70,8 +73,8 @@ bool ConnectPublisher(int port_number,
  * @param msg           Receive message
  */
 template <typename T>
-void ReceiveMessage(int socketHandle,
-                    T& msg) {
+inline void ReceiveMessage(int socketHandle,
+                           T& msg) {
 
     size_t data_size{0};
     do
@@ -83,6 +86,18 @@ void ReceiveMessage(int socketHandle,
     // Check if connection is still open
     if (rc == -1) {
         std::cerr << "Connection lost." << std::endl;
+        std::cerr << "Error: " << strerror(errno) << std::endl;
+        exit(EXIT_FAILURE);
+    }
+}
+
+// Send a message to server
+template <typename T>
+inline void SendMessage(int socketHandle, T& msg) {
+
+    auto sd = send(socketHandle, &msg, sizeof(T), 0);
+    if (sd == -1) {
+        std::cerr << "CLIENT -- CONNECTION -- Lost." << std::endl;
         std::cerr << "Error: " << strerror(errno) << std::endl;
         exit(EXIT_FAILURE);
     }

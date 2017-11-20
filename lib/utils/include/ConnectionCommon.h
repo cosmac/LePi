@@ -27,6 +27,10 @@
 
 #pragma once
 
+// C/C++
+#include <stdint.h>
+#include <stdlib.h>
+
 constexpr size_t kMaxWidth{160};
 constexpr size_t kMaxHeight{120};
 constexpr size_t kMaxBytesPerPixel{2};
@@ -67,7 +71,7 @@ struct RequestMessage {
 // Publisher uses this message in response to the subscriber request
 struct ResponseMessage {
     RequestType req_type{REQUEST_UNKNOWN};
-    RequestStatus req_status{RESEND};
+    RequestStatus req_status{STATUS_RESEND};
     uint32_t width{0};
     uint32_t height{0};
     uint32_t bpp{0};

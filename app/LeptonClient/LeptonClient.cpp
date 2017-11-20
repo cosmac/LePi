@@ -44,21 +44,9 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+
 // User defines
 #define DPRINTF //printf
-
-// Send a message to server
-void SendMessage(int socketHandle, RequestMessage& msg) {
-
-    DPRINTF("CLIENT -- SEND -- Sending message... ");
-    auto sd = send(socketHandle, &msg, sizeof(msg), 0);
-    if (sd == -1) {
-        std::cerr << "CLIENT -- CONNECTION -- Lost." << std::endl;
-        std::cerr << "Error: " << strerror(errno) << std::endl;
-        exit(EXIT_FAILURE);
-    }
-    DPRINTF(" Message sent! \n");
-}
 
 
 /**

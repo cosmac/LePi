@@ -122,14 +122,7 @@ int main()
         }
 
         // Send response
-        DPRINTF("[%d]SERVER -- SEND -- Sending message response... ", frame_id);
-        auto sd = send(socketConnection, &resp_msg, sizeof(resp_msg), 0);
-        if (sd == -1) {
-            std::cerr << "[" << frame_id << "]SERVER -- CONNECTION -- Lost." << std::endl;
-            std::cerr << "Error: " << strerror(errno) << std::endl;
-            exit(EXIT_FAILURE);
-        }
-        DPRINTF(" Message sent! \n");
+        SendMessage(socketConnection, resp_msg);
 
         frame_id++;
    }
