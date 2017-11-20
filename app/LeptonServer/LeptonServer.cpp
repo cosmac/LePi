@@ -68,8 +68,8 @@ int main()
     std::vector<uint8_t> imgU8(width * height);
     std::vector<uint16_t> imgU16(width * height);
 
-    uint64_t frame_id{0};
-    while (true) {
+    bool force_exit{false};
+    while (!force_exit) {
     
         //  Receive Request
         RequestMessage req_msg;
@@ -81,7 +81,7 @@ int main()
 
             case REQUEST_FRAME:
             {
-                DPRINTF("[%d]SERVER -- RECV -- Message: FRAME_REQUEST \n", frame_id);
+                DPRINTF("SERVER -- RECV -- Message: FRAME_REQUEST \n");
                 resp_msg.req_type = REQUEST_FRAME;
                 resp_msg.sensor_temperature = lePi.SensorTemperature();
                 if (req_msg.req_cmd == CMD_FRAME_U8) {
@@ -96,14 +96,12 @@ int main()
                 resp_msg.req_status = STATUS_FRAME_READY;
                 resp_msg.height = height;
                 resp_msg.width = width;
-                resp_msg.frame_id = frame_id;
                 break;
             }
             case REQUEST_I2C:
             {
-                DPRINTF("[%d]SERVER -- RECV -- Message: I2C_CMD \n", frame_id);
+                DPRINTF("SERVER -- RECV -- Message: I2C_CMD \n");
                 resp_msg.req_type = REQUEST_I2C;
-                resp_msg.frame_id = frame_id;
                 if (lePi.sendCommand(static_cast<LeptonI2CCmd>(req_msg.req_cmd),
                                      resp_msg.frame)) {
                     resp_msg.req_status = STATUS_I2C_SUCCEED;
@@ -113,9 +111,12 @@ int main()
                 }
                 break;
             }
+            case REQUEST_EXIT:
+                force_exit = true;
+                break;
             default :
             {
-                DPRINTF("[%d]SERVER -- RECV -- Message: UNKNOWN_MSG \n", frame_id);
+                DPRINTF("SERVER -- RECV -- Message: UNKNOWN_MSG \n");
                 resp_msg.req_type = REQUEST_UNKNOWN;
                 resp_msg.req_status = STATUS_RESEND;
             }
@@ -123,15 +124,13 @@ int main()
 
         // Send response
         SendMessage(socketConnection, resp_msg);
-
-        frame_id++;
    }
 
     // Release sensors
     lePi.stop();
 
     // Close connection
-    DPRINTF("[%d]SERVER -- Closing Connection...", frame_id);
+    DPRINTF("SERVER -- Closing Connection...");
     close(socketConnection);
     DPRINTF(" Closed ! \n");
 

@@ -68,7 +68,8 @@ bool ConnectPublisher(int port_number,
                       int& socketHandle);
 
 /**
- * @brief Receive a message from socket
+ * @brief Receive a message from the connected socket
+ * @tparam T            Message type
  * @param socketHandle  Socket connection address
  * @param msg           Receive message
  */
@@ -91,13 +92,19 @@ inline void ReceiveMessage(int socketHandle,
     }
 }
 
-// Send a message to server
+/**
+ * @brief Send a message to the connected socket
+ * @tparam T            Message type
+ * @param socketHandle  Socket connection address
+ * @param msg           Message content
+ */
 template <typename T>
-inline void SendMessage(int socketHandle, T& msg) {
+inline void SendMessage(int socketHandle,
+                        T& msg) {
 
     auto sd = send(socketHandle, &msg, sizeof(T), 0);
     if (sd == -1) {
-        std::cerr << "CLIENT -- CONNECTION -- Lost." << std::endl;
+        std::cerr << "Connection lost." << std::endl;
         std::cerr << "Error: " << strerror(errno) << std::endl;
         exit(EXIT_FAILURE);
     }

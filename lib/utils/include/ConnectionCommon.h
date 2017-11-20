@@ -39,6 +39,7 @@ constexpr size_t kMaxBytesPerPixel{2};
 enum RequestType {
     REQUEST_FRAME,   // Request a frame
     REQUEST_I2C,     // Request an I2C command
+    REQUEST_EXIT,    // Request app exit
     REQUEST_UNKNOWN  // Unknown request
 };
 

@@ -38,7 +38,6 @@
 // C/C++
 #include <stdio.h>
 #include <sys/socket.h>
-#include <sys/ioctl.h>
 #include <string.h>
 #include <netdb.h>
 #include <unistd.h>
@@ -116,7 +115,16 @@ int main() {
         if (key == 27) { // Press ESC to exit
             break;
         }
+
     }
+
+    // Close connection
+    req_msg.req_type = REQUEST_EXIT;
+    req_msg.req_cmd = CMD_VOID;
+    SendMessage(socketHandle, req_msg);
+    DPRINTF("CLIENT -- Closing Connection...");
+    close(socketHandle);
+    DPRINTF(" Closed ! \n");
 
     return EXIT_SUCCESS;
 }
