@@ -61,23 +61,19 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    // Send data
-    constexpr int width{160};
-    constexpr int height{120};
-    int pckg_size = 10 + width * height * 2;// Header + IR img(80*60*2)
-    char img[pckg_size];
-    char msg[] = {FRAME_REQUEST, FRAME_U8}; // Header(MSG+Response=2)
-    int rc = 0;
-    cv::Mat ir_img (height, width, CV_8UC1);
-
-    int count{0};
+    // Stream data
+    unit64_t frame_id{0};
+    cv::Mat ir_img;
     while (true) {
 
     	//  Send Request
-    	DPRINTF("[%d]CLIENT -- SEND -- Sending message... ", count);
-        int sd = send(socketHandle, msg, sizeof(msg), 0);
+    	DPRINTF("[%d]CLIENT -- SEND -- Sending message... ", frame_id);
+        RequestMessage req_msg;
+        req_msg.req_type = FRAME_REQUEST;
+        req_msg.req_cmd = FRAME_U8;
+        auto sd = send(socketHandle, &req_msg, sizeof(req_msg), 0);
         if (sd == -1) {
-            std::cerr << "[" << count << "]CLIENT -- CONNECTION -- Lost." << std::endl;
+            std::cerr << "[" << frame_id << "]CLIENT -- CONNECTION -- Lost." << std::endl;
             std::cerr << "Error: " << strerror(errno) << std::endl;
             exit(EXIT_FAILURE);
         }
@@ -88,32 +84,48 @@ int main() {
         do
         { // wait for data to be available
         	ioctl(socketHandle, FIONREAD, &data_size);
-        } while (data_size < pckg_size);
-        rc = recv(socketHandle, img, sizeof(img), 0);
-        DPRINTF("[%d]CLIENT -- RECV -- Number of bytes read: %d \n", count, rc);
+        } while (data_size < sizeof(ResponseMessage));
+        ResponseMessage resp_msg;
+        auto rc = recv(socketHandle, &resp_msg, sizeof(resp_msg), 0);
+        DPRINTF("[%d]CLIENT -- RECV -- Number of bytes read: %d \n", frame_id, rc);
 
         // Check if connection is still open
         if (rc == -1) {
-            std::cerr << "[" << count << "]CLIENT -- CONNECTION -- Lost." << std::endl;
+            std::cerr << "[" << frame_id << "]CLIENT -- CONNECTION -- Lost." << std::endl;
             std::cerr << "Error: " << strerror(errno) << std::endl;
             exit(EXIT_FAILURE);
         }
 
         // Check response header
-        if (img[0] == FRAME_REQUEST) {
-        	DPRINTF("[%d]CLIENT -- RECV -- FRAME_REQUEST response. \n", count);
-        	memcpy(ir_img.data, img+10, width * height);
-        }
-        else if (img[0] == I2C_CMD) {
-        	DPRINTF("[%d]CLIENT -- RECV -- I2C_CMD response. \n", count);
-        }
-        else if (img[0] == UNKNOWN_MSG) {
-            std::cerr << "[" << count << "]CLIENT -- Server did not recognize your request." << std::endl;
-            exit(EXIT_FAILURE);
-        }
-        else {
-            std::cerr << "[" << count << "]CLIENT -- Unable to decode server message." << std::endl;
-            exit(EXIT_FAILURE);
+        switch (resp_msg.req_type) {
+
+            case FRAME_REQUEST:
+            {
+                DPRINTF("[%d]CLIENT -- RECV -- FRAME_REQUEST response. \n", frame_id);
+                ir_img = cv::Mat(resp_msg.height, resp_msg.width, CV_8UC1);
+                memcpy(ir_img.data, resp_msg.frame,
+                       resp_msg.width * resp_msg.height);
+                break;
+            }
+            case I2C_REQUEST:
+            {
+                DPRINTF("[%d]CLIENT -- RECV -- I2C_CMD response. \n", frame_id);
+                break;
+            }
+            case UNKNOWN_REQUEST:
+            {
+                std::cerr << "[" << frame_id
+                          << "]CLIENT -- Server did not recognize your request."
+                          << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            default:
+            {
+                std::cerr << "[" << frame_id
+                          << "]CLIENT -- Unable to decode server message."
+                          << std::endl;
+                exit(EXIT_FAILURE);
+            }
         }
 
         // Show image
@@ -123,7 +135,7 @@ int main() {
             break;
         }
 
-        count++;
+        frame_id++;
     }
 
     return EXIT_SUCCESS;
