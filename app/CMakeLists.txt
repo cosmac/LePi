@@ -6,12 +6,12 @@ add_subdirectory(Player)
 message("-- Generating build for PlayerThread. Host: ${CMAKE_SYSTEM_NAME}")
 add_subdirectory(PlayerThread)
 
-# TCP/IP Publisher for thermal stream using leptonAPI parallel interface
-# and socket communication with a Subscriber app
-message("-- Generating build for Server. Host: ${CMAKE_SYSTEM_NAME}")
-add_subdirectory(Publisher)
+# TCP/IP Server for thermal stream using leptonAPI parallel interface
+# and socket communication with a Client app
+message("-- Generating build for Lepton Server. Host: ${CMAKE_SYSTEM_NAME}")
+add_subdirectory(LeptonServer)
 
-# TCP/IP Subscriber for thermal stream using socket communication
-# with an existing Publisher app
-message("-- Generating build for Server. Host: ${CMAKE_SYSTEM_NAME}")
-add_subdirectory(Subscriber)
+# TCP/IP Client for thermal stream using socket communication
+# with an existing Server app
+message("-- Generating build for Lepton Client. Host: ${CMAKE_SYSTEM_NAME}")
+add_subdirectory(LeptonClient)

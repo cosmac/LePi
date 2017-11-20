@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.0)
 
-project(Publisher)
+project(LeptonServer)
 
 # Dependencies
 set(DEPENDENCIES leptonAPI utils)

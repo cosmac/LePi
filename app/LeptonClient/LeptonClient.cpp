@@ -62,7 +62,7 @@ int main() {
     }
 
     // Stream data
-    unit64_t frame_id{0};
+    uint64_t frame_id{0};
     cv::Mat ir_img;
     while (true) {
 
@@ -80,7 +80,7 @@ int main() {
         DPRINTF(" Message sent! \n");
 
         // Receive response
-        int data_size{0};
+        size_t data_size{0};
         do
         { // wait for data to be available
         	ioctl(socketHandle, FIONREAD, &data_size);
