@@ -39,7 +39,6 @@
 #include <stdio.h>
 #include <sys/socket.h>
 #include <string.h>
-#include <netdb.h>
 #include <unistd.h>
 #include <stdlib.h>
 
