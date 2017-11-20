@@ -27,6 +27,9 @@
 
 #pragma once
 
+// LePi
+#include <ConnectionCommon.h>
+
 // C/C++
 #include <string>
 
@@ -60,3 +63,27 @@ bool ConnectSubscriber(int port_number,
 bool ConnectPublisher(int port_number,
                       std::string ip_address,
                       int& socketHandle);
+
+/**
+ * @brief Receive a message from socket
+ * @param socketHandle  Socket connection address
+ * @param msg           Receive message
+ */
+template <typename T>
+void ReceiveMessage(int socketHandle,
+                    T& msg) {
+
+    size_t data_size{0};
+    do
+    { // wait for data to be available
+        ioctl(socketHandle, FIONREAD, &data_size);
+    } while (data_size < sizeof(T));
+    auto rc = recv(socketHandle, &msg, sizeof(T), 0);
+
+    // Check if connection is still open
+    if (rc == -1) {
+        std::cerr << "Connection lost." << std::endl;
+        std::cerr << "Error: " << strerror(errno) << std::endl;
+        exit(EXIT_FAILURE);
+    }
+}

@@ -32,28 +32,41 @@ constexpr size_t kMaxHeight{120};
 constexpr size_t kMaxBytesPerPixel{2};
 
 // Request message type
-enum RequestType { FRAME_REQUEST,   // Request a frame
-                   I2C_REQUEST,     // Request an I2C command
-                   UNKNOWN_REQUEST  // Unknown request
-                 };
+enum RequestType {
+    REQUEST_FRAME,   // Request a frame
+    REQUEST_I2C,     // Request an I2C command
+    REQUEST_UNKNOWN  // Unknown request
+};
+
+// Request message command
+enum RequestCmd {
+    // Frame request cmd
+    CMD_FRAME_U8,
+    CMD_FRAME_U16,
+    // I2C request cmd
+    CMD_I2C_FFC,
+    CMD_I2C_SENSOR_TEMPERATURE,
+    CMD_VOID
+};
 
 // Request message status
-enum RequestStatus { FRAME_READY,   // The response contains a valid frame
-                     NO_FRAME,      // No frame ready to be read [We can avoid this by repeating last frame]
-                     I2C_SUCCEED,   // I2C command was applied with success
-                     I2C_FAILED,    // I2C command failed
-                     RESEND         // If the client message was something unknown, ask for a resend
-                   };
+enum RequestStatus {
+    STATUS_FRAME_READY,   // The response contains a valid frame
+    STATUS_NO_FRAME,      // No frame ready to be read [We can avoid this by repeating last frame]
+    STATUS_I2C_SUCCEED,   // I2C command was applied with success
+    STATUS_I2C_FAILED,    // I2C command failed
+    STATUS_RESEND         // If the client message was something unknown, ask for a resend
+};
 
 // Subscriber uses this message to ask publisher for data
 struct RequestMessage {
-    RequestType req_type{UNKNOWN_REQUEST};
-    int req_cmd{-1};
+    RequestType req_type{REQUEST_UNKNOWN};
+    RequestCmd req_cmd{CMD_VOID};
 };
 
 // Publisher uses this message in response to the subscriber request
 struct ResponseMessage {
-    RequestType req_type{UNKNOWN_REQUEST};
+    RequestType req_type{REQUEST_UNKNOWN};
     RequestStatus req_status{RESEND};
     uint32_t width{0};
     uint32_t height{0};
