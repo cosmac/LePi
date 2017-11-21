@@ -1,9 +1,9 @@
 cmake_minimum_required (VERSION 3.0)
 
-project(LeptonServer)
+project(LePiClient)
 
 # Dependencies
-set(DEPENDENCIES leptonAPI utils)
+set(DEPENDENCIES leptonAPI utils OpenCV)
 list(LENGTH DEPENDENCIES num_dependencies)
 if(num_dependencies)
 	foreach(lib_name ${DEPENDENCIES})

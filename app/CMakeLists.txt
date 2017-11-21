@@ -9,9 +9,9 @@ add_subdirectory(PlayerThread)
 # TCP/IP Server for thermal stream using leptonAPI parallel interface
 # and socket communication with a Client app
 message("-- Generating build for Lepton Server. Host: ${CMAKE_SYSTEM_NAME}")
-add_subdirectory(LeptonServer)
+add_subdirectory(LePiServer)
 
 # TCP/IP Client for thermal stream using socket communication
 # with an existing Server app
 message("-- Generating build for Lepton Client. Host: ${CMAKE_SYSTEM_NAME}")
-add_subdirectory(LeptonClient)
+add_subdirectory(LePiClient)
