@@ -50,11 +50,11 @@ make
 sudo make check
 sudo make install
 ```
-- [REQUIRED] OpenCV: https://github.com/opencv/opencv/releases/tag/3.3.0
+- [OPTIONAL] OpenCV: https://github.com/opencv/opencv/releases/tag/3.3.0
 
 You can follow these steps for installation https://www.pyimagesearch.com/2016/04/18/install-guide-raspberry-pi-3-raspbian-jessie-opencv-3/, or other tutorial that you find useful and easy to follow. I'm using OpenCV 3.3.0, but any version after 3.0.0 should be okay.
 
-**_Note:_** The library can be built without OpenCV too. In that case, the demo apps will not be available. To do that, open the CMake file and comment out the following line `add_subdirectory(app)`. I'm planning on writing an example that uses the librarry without OpenCV.
+**_Note:_** The library can be built without OpenCV. In that case, the demo apps will not be available. Also, I'm planning on writing an example that uses the librarry without OpenCV.
 
 ## Build
 LePi build is based on the CMake portable pre-build tool. Follow the next steps to build the library and the apps:
