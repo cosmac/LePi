@@ -3,7 +3,7 @@
 function (third_party)
 
 	# Load OpenCV
-	find_package(OpenCV REQUIRED)
+	find_package(OpenCV)
 	set(OpenCV_FOUND ${OpenCV_FOUND} CACHE INTERNAL "OpenCV: Library found" FORCE)		
 	if(OpenCV_FOUND)
 		set(PKG_LIBRARIES ${OpenCV_LIBRARIES} ${OpenCV_LIBRARY} ${OpenCV_LIBS})
