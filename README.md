@@ -15,7 +15,7 @@ Please make sure that the sensor is properly wired. Here is an example for Rapbe
 
 ## Examples
 LePi offers 2 easy to use interfaces for accessing the Lepton frames. First interface is the serial interface, this reads the frame from sensor when frame is requested:
-```
+```C++
 LePi lePi;
 lePi.OpenConnection();
 
@@ -25,7 +25,7 @@ lePi.GetFrame(frame.data(), FRAME_U8);
 lePi.CloseConnection();
 ```
 The second available interface, it is the parallel interface which allows the user to read the latest frame grabbed from the sensor. The interface grabs all available frames from the sensor and it offers access to the latest one. This should be the prefered option, since it stays in sync with the Lepton sensor and it makes sure that it reads all available frames.
-```
+```C++
 LeptonCamera cam;
 cam.start();
 
