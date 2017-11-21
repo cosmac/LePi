@@ -4,16 +4,10 @@
 LePi is a lightweight library for FLIR Lepton (2, 2.5 and 3) and Raspberry Pi. The Lepton version will be automatically detected at run time. The SPI port can be specified in the app, by default the LePi apps are using SPI0. 
 
 Please make sure that the sensor is properly wired. Here is an example for Rapberry Pi2:
-- SCL: Pin#5
-- SDA: Pin#3
-- VIN: Pin#1
-- GND: Pin#25
-- CLK: Pin#23
-- MISO: Pin#21
-- MOSI: Pin#19
-- CS: Pin#24
+- SCL -> Pin#5, SDA -> Pin#3, VIN -> Pin#1, GND -> Pin#25, CLK -> Pin#23, MISO -> Pin#21, MOSI -> Pin#19, CS -> Pin#24
+![Lepton-Raspberry Pi wiring](https://github.com/cosmac/LePi/blob/feature/doc/resources/lepton-raspberryPi%20wiring.png)
 
-## Examples
+## Code Examples
 LePi offers 2 easy to use interfaces for accessing the Lepton frames. First interface is the serial interface, this reads the frame from sensor when frame is requested:
 ```C++
 LePi lePi;
@@ -56,11 +50,11 @@ make
 sudo make check
 sudo make install
 ```
-- [REQUIRED] OpenCV: https://github.com/opencv/opencv/releases/tag/3.3.0
+- [OPTIONAL] OpenCV: https://github.com/opencv/opencv/releases/tag/3.3.0
 
 You can follow these steps for installation https://www.pyimagesearch.com/2016/04/18/install-guide-raspberry-pi-3-raspbian-jessie-opencv-3/, or other tutorial that you find useful and easy to follow. I'm using OpenCV 3.3.0, but any version after 3.0.0 should be okay.
 
-**_Note:_** The library can be built without OpenCV too. In that case, the demo apps will not be available. To do that, open the CMake file and comment out the following line `add_subdirectory(app)`. I'm planning on writing an example that uses the librarry without OpenCV.
+**_Note:_** The library can be built without OpenCV. In that case, the demo apps will not be available. Also, I'm planning on writing an example that uses the librarry without OpenCV.
 
 ## Build
 LePi build is based on the CMake portable pre-build tool. Follow the next steps to build the library and the apps:
