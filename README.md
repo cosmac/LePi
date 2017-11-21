@@ -4,16 +4,10 @@
 LePi is a lightweight library for FLIR Lepton (2, 2.5 and 3) and Raspberry Pi. The Lepton version will be automatically detected at run time. The SPI port can be specified in the app, by default the LePi apps are using SPI0. 
 
 Please make sure that the sensor is properly wired. Here is an example for Rapberry Pi2:
-- SCL: Pin#5
-- SDA: Pin#3
-- VIN: Pin#1
-- GND: Pin#25
-- CLK: Pin#23
-- MISO: Pin#21
-- MOSI: Pin#19
-- CS: Pin#24
+- SCL -> Pin#5, SDA -> Pin#3, VIN -> Pin#1, GND -> Pin#25, CLK -> Pin#23, MISO -> Pin#21, MOSI -> Pin#19, CS -> Pin#24
+![Lepton-Raspberry Pi wiring](https://github.com/cosmac/LePi/blob/feature/doc/resources/lepton-raspberryPi%20wiring.png)
 
-## Examples
+## Code Examples
 LePi offers 2 easy to use interfaces for accessing the Lepton frames. First interface is the serial interface, this reads the frame from sensor when frame is requested:
 ```C++
 LePi lePi;
